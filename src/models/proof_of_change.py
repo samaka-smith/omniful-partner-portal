@@ -11,6 +11,7 @@ class ProofOfChange(db.Model):
     new_status = db.Column(db.String(50), nullable=False)
     proof_type = db.Column(db.String(50), nullable=False)  # 'link' or 'file'
     proof_content = db.Column(db.String(255), nullable=False)
+    reason_for_lost = db.Column(db.Text, nullable=True)  # Only used when new_status is 'Lost'
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     deal = db.relationship('Deal', back_populates='status_changes')

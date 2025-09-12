@@ -152,7 +152,7 @@ def update_deal(deal_id):
         data = request.get_json()
         
         # Update fields
-        for field in ['customer_company_name', 'customer_spoc', 'customer_company_url',
+        for field in ['partner_company_id', 'customer_company_name', 'customer_spoc', 'customer_company_url',
                      'customer_email', 'customer_spoc_email', 'customer_spoc_phone',
                      'comments', 'customer_company_logo', 'revenue_arr_estimation', 'status']:
             if field in data:

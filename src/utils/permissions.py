@@ -20,7 +20,7 @@ def check_permissions(required_permission):
             
             try:
                 token = token.replace('Bearer ', '')
-                payload = jwt.decode(token, 'your-secret-key-here', algorithms=['HS256'])
+                payload = jwt.decode(token, 'your-secret-key', algorithms=['HS256'])
                 user_id = payload['user_id']
                 user = User.query.get(user_id)
                 

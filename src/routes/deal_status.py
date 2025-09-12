@@ -12,8 +12,8 @@ deal_status_bp = Blueprint('deal_status', __name__)
 
 # Define the valid deal statuses
 VALID_STATUSES = [
-    'Open', 'New', 'Qualification', 'Demo1', 'Demo2', 
-    'Proposal', 'Negotiation', 'Won', 'Lost'
+    'New', 'Open', 'Qualified', 'Demo 1', 'Demo 2', 
+    'Proposition', 'Negotiation', 'Won', 'Lost'
 ]
 
 @deal_status_bp.route('/deals/<int:deal_id>/status', methods=['PUT'])
@@ -49,6 +49,14 @@ def update_deal_status(deal_id):
         if proof_type not in ['link', 'file']:
             return jsonify({'error': 'Proof type must be either "link" or "file"'}), 400
         
+        # Handle reason for lost if status is Lost
+        reason_for_lost = None
+        if new_status == 'Lost':
+            reason_for_lost = data.get('reason_for_lost')
+            if not reason_for_lost or not reason_for_lost.strip():
+                return jsonify({'error': 'Reason for lost is required when setting status to Lost'}), 400
+            reason_for_lost = reason_for_lost.strip()
+        
         # Store the previous status
         previous_status = deal.status
         
@@ -59,7 +67,8 @@ def update_deal_status(deal_id):
             previous_status=previous_status,
             new_status=new_status,
             proof_type=proof_type,
-            proof_content=proof_content
+            proof_content=proof_content,
+            reason_for_lost=reason_for_lost
         )
         
         # Update deal status

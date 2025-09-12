@@ -10,7 +10,12 @@ class Company(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    users = db.relationship('User', backref='company', lazy=True)
+    pams = db.relationship(
+        "User",
+        secondary="pam_company_association",
+        back_populates="companies"
+    )
+
     deals = db.relationship('Deal', backref='partner_company', lazy=True)
     
     def __repr__(self):

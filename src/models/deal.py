@@ -15,7 +15,8 @@ class Deal(db.Model):
     comments = db.Column(db.Text)
     customer_company_logo = db.Column(db.String(255))
     revenue_arr_estimation = db.Column(db.Numeric(10, 2))
-    status = db.Column(db.String(50), default='Open')  # Open, In Progress, Won, Lost
+    status = db.Column(db.String(50), default='Open')  # Open, New, Qualification, Demo1, Demo2, Proposal, Negotiation, Won, Lost
+    status_changes = db.relationship('ProofOfChange', back_populates='deal', cascade='all, delete-orphan')
     created_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

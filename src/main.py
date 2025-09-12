@@ -20,6 +20,10 @@ from src.routes.deal import deal_bp
 from src.routes.file import file_bp
 from src.routes.target_management import target_management_bp
 from src.routes.user_creation import user_creation_bp
+from src.routes.company_management import company_management_bp
+from src.routes.pam_assignments import pam_assignments_bp
+from src.routes.deal_status import deal_status_bp
+from src.routes.integration import integration_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
@@ -35,6 +39,10 @@ app.register_blueprint(deal_bp, url_prefix='/api')
 app.register_blueprint(file_bp, url_prefix='/api')
 app.register_blueprint(target_management_bp, url_prefix='/api')
 app.register_blueprint(user_creation_bp, url_prefix='/api')
+app.register_blueprint(company_management_bp, url_prefix='/api')
+app.register_blueprint(pam_assignments_bp, url_prefix='/api')
+app.register_blueprint(deal_status_bp, url_prefix='/api')
+app.register_blueprint(integration_bp, url_prefix='/api')
 
 # uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"

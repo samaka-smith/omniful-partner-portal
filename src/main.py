@@ -62,7 +62,7 @@ def init_database():
         admin_user = User(
             username='Mahmoud Ali',
             email='mahmoud.ali@omniful.ai',
-            password_hash=generate_password_hash('TempPass123!'),
+            password_hash=generate_password_hash('mahmoud.ali@omniful.ai'),
             role='Portal Administrator',
             company_id=omniful_company.id,
             status='active',
@@ -70,7 +70,7 @@ def init_database():
         )
         db.session.add(admin_user)
         db.session.commit()
-        print("Created super admin user: mahmoud.ali@omniful.ai")
+        print("Created super admin user: mahmoud.ali@omniful.ai with master password")
 
 with app.app_context():
     init_database()

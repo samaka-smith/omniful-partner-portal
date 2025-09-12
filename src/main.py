@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory
 from flask_cors import CORS
-from src.models.user import db
+from src.models.user import db, User
 from src.models.company import Company
 from src.models.deal import Deal
 from src.models.deal_file import DealFile
@@ -36,8 +36,40 @@ app.register_blueprint(integration_bp, url_prefix='/api/integration')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
-with app.app_context():
+
+def init_database():
+    """Initialize database with default data"""
+    from werkzeug.security import generate_password_hash
+    
+    # Create all tables
     db.create_all()
+    
+    # Check if Omniful company exists
+    omniful_company = Company.query.filter_by(name='Omniful').first()
+    if not omniful_company:
+        omniful_company = Company(name='Omniful')
+        db.session.add(omniful_company)
+        db.session.commit()
+        print("Created Omniful company")
+    
+    # Check if super admin user exists
+    admin_user = User.query.filter_by(email='mahmoud.ali@omniful.ai').first()
+    if not admin_user:
+        admin_user = User(
+            username='Mahmoud Ali',
+            email='mahmoud.ali@omniful.ai',
+            password_hash=generate_password_hash('TempPass123!'),
+            role='Portal Administrator',
+            company_id=omniful_company.id,
+            status='active',
+            force_password_change=True
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+        print("Created super admin user: mahmoud.ali@omniful.ai")
+
+with app.app_context():
+    init_database()
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')

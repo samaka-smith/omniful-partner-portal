@@ -8,29 +8,18 @@ class User(db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
-    full_name = db.Column(db.String(255), nullable=False)
+    username = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False)  # Portal Administrator, Partner Account Manager, Partner SPOC Admin, Partner Team Member, View only users
-    # company_id is now part of the association table for PAMs
-    # For other roles, we might still need a primary company, so we'll keep it for now
+    # For PAMs, we'll use a simple approach - store assigned companies in a separate table
+    # but for now, let's use the primary company_id for all users
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True)
-
-    companies = db.relationship(
-        'Company',
-        secondary='pam_company_association',
-        back_populates='pams',
-        lazy='dynamic'
-    )
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     force_password_change = db.Column(db.Boolean, default=True)
-    
-    # Relationships
-    created_deals = db.relationship('Deal', backref='creator', lazy=True)
-    uploaded_files = db.relationship('DealFile', backref='uploader', lazy=True)
-    deal_comments = db.relationship('DealComment', backref='commenter', lazy=True)
+    status = db.Column(db.String(20), default='active')  # active, inactive
 
     def __repr__(self):
         return f'<User {self.email}>'
@@ -44,7 +33,7 @@ class User(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'full_name': self.full_name,
+            'username': self.username,
             'email': self.email,
             'role': self.role,
             'company_id': self.company_id,

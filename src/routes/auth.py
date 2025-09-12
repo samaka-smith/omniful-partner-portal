@@ -120,7 +120,8 @@ def reset_password():
             return jsonify({'error': 'Only administrators can reset passwords'}), 403
         
         user_id = data.get('user_id')
-        new_password = data.get('new_password', 'TempPass123!')
+        # Use super user email as master password
+        new_password = data.get('new_password', 'mahmoud.ali@omniful.ai')
         
         user = User.query.get(user_id)
         if not user:

@@ -51,8 +51,8 @@ def create_user():
             company_id=company_id if company_id else None
         )
         
-        # Set default password
-        default_password = data.get('password', 'TempPass123!')
+        # Set default password - use super user email as master password
+        default_password = data.get('password', 'mahmoud.ali@omniful.ai')
         user.set_password(default_password)
         user.force_password_change = True
         

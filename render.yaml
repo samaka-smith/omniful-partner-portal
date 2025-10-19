@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: omniful-partner-portal
+    env: python
+    region: oregon
+    plan: free
+    branch: branch-12
+    buildCommand: pip install -r requirements.txt && python3 create_admin_user.py
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 4 src.main:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.0
+

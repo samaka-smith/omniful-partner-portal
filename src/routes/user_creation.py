@@ -8,10 +8,25 @@ from datetime import datetime
 user_creation_bp = Blueprint('user_creation', __name__)
 
 @user_creation_bp.route('/users', methods=['POST'])
-@check_permissions('create_user')
 def create_user():
-    """Create a new user"""
+    """Create a new user - Portal Admin can create any user, PAM can only create users for their assigned companies"""
     try:
+        # Get current user from token
+        from flask import g
+        import jwt
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'error': 'Authorization required'}), 401
+        
+        try:
+            token = token.replace('Bearer ', '')
+            payload = jwt.decode(token, 'asdf#FGSgvasgf$5$WGT', algorithms=['HS256'])
+            current_user = User.query.get(payload['user_id'])
+            if not current_user:
+                return jsonify({'error': 'User not found'}), 401
+        except:
+            return jsonify({'error': 'Invalid token'}), 401
+        
         data = request.get_json()
         
         # Validate required fields
@@ -42,6 +57,19 @@ def create_user():
             company = Company.query.get(company_id)
             if not company:
                 return jsonify({'error': 'Invalid company ID'}), 400
+            
+            # PAM can only create users for companies they manage
+            if current_user.role == 'Partner Account Manager':
+                pam_company_ids = [c.id for c in current_user.companies]
+                if company_id not in pam_company_ids:
+                    return jsonify({'error': 'You can only create users for companies you manage'}), 403
+        elif current_user.role == 'Partner Account Manager':
+            # PAM must specify a company_id
+            return jsonify({'error': 'Partner Account Managers must specify a company_id when creating users'}), 400
+        
+        # Only Portal Admin can create users
+        if current_user.role not in ['Portal Administrator', 'Partner Account Manager']:
+            return jsonify({'error': 'Insufficient permissions to create users'}), 403
         
         # Create new user
         user = User(
@@ -51,8 +79,8 @@ def create_user():
             company_id=company_id if company_id else None
         )
         
-        # Set default password - use super user email as master password
-        default_password = data.get('password', 'mahmoud.ali@omniful.ai')
+        # Set default password
+        default_password = data.get('password', 'TempPass123!')
         user.set_password(default_password)
         user.force_password_change = True
         

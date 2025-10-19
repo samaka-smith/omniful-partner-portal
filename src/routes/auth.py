@@ -106,6 +106,7 @@ def change_password():
 
 @auth_bp.route('/reset-password', methods=['POST'])
 def reset_password():
+    """Admin or PAM can reset passwords for users in their scope"""
     try:
         data = request.get_json()
         auth_header = request.headers.get('Authorization')
@@ -117,24 +118,43 @@ def reset_password():
         payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         current_user = User.query.get(payload['user_id'])
         
-        # Only admins can reset other users' passwords
-        if current_user.role != 'Portal Administrator':
-            return jsonify({'error': 'Only administrators can reset passwords'}), 403
+        if not current_user:
+            return jsonify({'error': 'User not found'}), 401
         
         user_id = data.get('user_id')
-        # Use super user email as master password
-        new_password = data.get('new_password', 'mahmoud.ali@omniful.ai')
+        new_password = data.get('new_password')
         
-        user = User.query.get(user_id)
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
+        if not user_id or not new_password:
+            return jsonify({'error': 'user_id and new_password are required'}), 400
         
-        user.set_password(new_password)
-        user.force_password_change = True
+        target_user = User.query.get(user_id)
+        if not target_user:
+            return jsonify({'error': 'Target user not found'}), 404
+        
+        # Check permissions
+        can_change = False
+        
+        # Portal Admin can change any password
+        if current_user.role == 'Portal Administrator':
+            can_change = True
+        # PAM can change passwords for users in their assigned companies
+        elif current_user.role == 'Partner Account Manager':
+            if target_user.company_id:
+                # Check if the target user's company is assigned to this PAM
+                pam_company_ids = [c.id for c in current_user.companies]
+                if target_user.company_id in pam_company_ids:
+                    can_change = True
+        
+        if not can_change:
+            return jsonify({'error': 'You do not have permission to change this user\'s password'}), 403
+        
+        target_user.set_password(new_password)
+        target_user.force_password_change = True
         db.session.commit()
         
         return jsonify({'message': 'Password reset successfully'}), 200
         
     except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 

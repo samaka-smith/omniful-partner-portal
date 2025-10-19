@@ -4,6 +4,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+# Import the association table for PAM-Company relationships
+from src.models.pam_company_association import pam_company_association
+
 class User(db.Model):
     __tablename__ = 'users'
     
@@ -20,6 +23,9 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     force_password_change = db.Column(db.Boolean, default=True)
     status = db.Column(db.String(20), default='active')  # active, inactive
+    
+    # Relationship for PAM assigned companies
+    companies = db.relationship('Company', secondary='pam_company_association', backref='pams', lazy='dynamic')
 
     def __repr__(self):
         return f'<User {self.email}>'

@@ -83,32 +83,37 @@ def update_user(user_id):
         if not current_user:
             return jsonify({'error': 'Authorization required'}), 401
         
-        # Users can update their own profile, admins can update any profile
-        if current_user.id != user_id and current_user.role != 'Portal Administrator':
-            return jsonify({'error': 'Access denied'}), 403
-        
         user = User.query.get(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
         data = request.get_json()
         
-        # Update allowed fields
-        if 'full_name' in data:
-            user.full_name = data['full_name']
-        
-        # Only admins can change role and company
-        if current_user.role == 'Portal Administrator':
+        # Users can update their own basic profile fields
+        if current_user.id == user_id:
+            if 'full_name' in data:
+                user.full_name = data['full_name']
+            # Users cannot change their own role or company
+            if 'role' in data or 'company_id' in data:
+                return jsonify({'error': 'You cannot change your own role or company assignment'}), 403
+        # Only Portal Admin can update other users' profiles
+        elif current_user.role == 'Portal Administrator':
+            if 'full_name' in data:
+                user.full_name = data['full_name']
             if 'role' in data:
                 user.role = data['role']
+            # Only Portal Admin can change user allocation (company assignment)
             if 'company_id' in data:
                 user.company_id = data['company_id']
+        else:
+            return jsonify({'error': 'Access denied'}), 403
         
         db.session.commit()
         
         return jsonify({'message': 'User updated successfully', 'user': user.to_dict()}), 200
         
     except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])

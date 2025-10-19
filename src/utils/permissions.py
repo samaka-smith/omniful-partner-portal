@@ -109,6 +109,26 @@ def has_permission(user, permission, **kwargs):
     elif permission == 'manage_targets':
         return role == 'Portal Administrator'
     
+    elif permission == 'change_user_password':
+        # Portal Admin can change any password
+        if role == 'Portal Administrator':
+            return True
+        # PAM can change passwords for users in their assigned companies
+        elif role == 'Partner Account Manager':
+            target_user_id = kwargs.get('target_user_id')
+            if target_user_id:
+                target_user = User.query.get(target_user_id)
+                if target_user and target_user.company_id:
+                    # Check if the target user's company is assigned to this PAM
+                    return target_user.company_id in [c.id for c in user.companies]
+            return False
+        else:
+            return False
+    
+    elif permission == 'change_user_allocation':
+        # Only Portal Admin can change user allocation (company assignment)
+        return role == 'Portal Administrator'
+    
     else:
         return False
 
